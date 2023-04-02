@@ -1,7 +1,7 @@
 name: event_bloc_tester
 description: A test package used in event_bloc
 version: 0.1.0
-homepage:
+homepage: https://github.com/VHCBlade/event_bloc_tester
 
 environment:
   sdk: '>=2.19.6 <3.0.0'

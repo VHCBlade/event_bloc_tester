@@ -79,8 +79,13 @@ class SerializableListTester<T> {
     final tester = SerializableTester(mode);
     if (mode == ListTesterMode.testOutput) {
       final file = createFileObject(path, testName);
-      final value = await file.readAsString();
-      tester.testOutput.addAll(json.decode(value));
+      try {
+        final value = await file.readAsString();
+        tester.testOutput.addAll(json.decode(value));
+      } on PathNotFoundException {
+        throw ArgumentError(
+            "Unable to find generated output file. You need to run with mode: ListTesterMode.generateOutput before testing. ${file.path}");
+      }
     }
     await testFunction(generatedValue, tester);
 

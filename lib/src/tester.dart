@@ -26,15 +26,67 @@ void createFolderIfNotExists(String path) {
   }
 }
 
-/// This helps you easily write tests that have a serializable output.
+/// This is a mixin that stores the logic for creating a tester that supports the various [ListTesterMode]s
+///
+/// See [SerializableListTester] and [SerializableListWidgetTester] for implementations of this mixin
+mixin SerializableListTesterMixin<T> {
+  String get testGroupName;
+  String get mainTestName;
+  ListTesterMode get mode;
+
+  /// Run the tests under the current [mode]
+  Future<void> runTests();
+
+  /// Generates the path that this tester will use in [runTests]
+  ///
+  /// This will also automatically create the path if needed by the created [mode]
+  String generatePath() {
+    final String path =
+        "test_output/${toFilePath(testGroupName)}/${toFilePath(mainTestName)}";
+    if (mode == ListTesterMode.generateOutput) {
+      createFolderIfNotExists(path);
+      print("Outputting test_output to $path");
+      print(
+          "If you're seeing this in a flutter test, your tests might not be valid!");
+    }
+
+    return path;
+  }
+
+  /// Generates the [SerializableTester] that will be used in [runTests]
+  ///
+  /// This will also automatically load any needed values for the [SerializableTester] based on [mode]
+  Future<SerializableTester> generateListTester(
+      String path, String testName) async {
+    final tester = SerializableTester(mode);
+    if (mode == ListTesterMode.testOutput) {
+      final file = createFileObject(path, testName);
+      try {
+        final value = await file.readAsString();
+        tester.testOutput.addAll(json.decode(value));
+      } on PathNotFoundException {
+        throw ArgumentError(
+            "Unable to find generated output file. You need to run with mode: ListTesterMode.generateOutput before testing. ${file.path}");
+      }
+    }
+    return tester;
+  }
+}
+
+/// This helps you easily write unit tests that have a serializable output.
 ///
 /// Based on the [ListTesterMode] you use, this will either generate the expected output or
 /// test against the expected output generated with a previous [generateOuput] call.
 ///
 /// Please see test/example_test.dart for some example usage of this class.
-class SerializableListTester<T> {
+///
+/// If you need a version for Widget tests, please see [SerializableListWidgetTester]
+class SerializableListTester<T> with SerializableListTesterMixin<T> {
+  @override
   final String testGroupName;
+  @override
   final String mainTestName;
+  @override
   final ListTesterMode mode;
   final FutureOr<void> Function(T testInput, SerializableTester tester)
       testFunction;
@@ -59,16 +111,9 @@ class SerializableListTester<T> {
     required this.testMap,
   });
 
-  void runTests() {
-    final String path =
-        "test_output/${toFilePath(testGroupName)}/${toFilePath(mainTestName)}";
-    if (mode == ListTesterMode.generateOutput) {
-      createFolderIfNotExists(path);
-      print("Outputting test_output to $path");
-      print(
-          "If you're seeing this in a flutter test, your tests might not be valid!");
-    }
-
+  @override
+  Future<void> runTests() async {
+    final path = generatePath();
     for (final testName in testMap.keys) {
       test(testName, () => runTest(path, testName));
     }
@@ -76,20 +121,10 @@ class SerializableListTester<T> {
 
   Future<void> runTest(String path, String testName) async {
     final generatedValue = testMap[testName]!();
-    final tester = SerializableTester(mode);
-    if (mode == ListTesterMode.testOutput) {
-      final file = createFileObject(path, testName);
-      try {
-        final value = await file.readAsString();
-        tester.testOutput.addAll(json.decode(value));
-      } on PathNotFoundException {
-        throw ArgumentError(
-            "Unable to find generated output file. You need to run with mode: ListTesterMode.generateOutput before testing. ${file.path}");
-      }
-    }
+    final tester = await generateListTester(path, testName);
     await testFunction(generatedValue, tester);
 
-    tester.finish(path, testName);
+    await tester.finish(path, testName);
   }
 }
 
@@ -112,15 +147,15 @@ class SerializableTester {
     }
   }
 
-  void finish(String path, String testName) {
+  FutureOr<void> finish(String path, String testName) async {
     if (mode != ListTesterMode.generateOutput) {
-      return;
+      return null;
     }
 
     final file = createFileObject(path, testName);
     final encodedTestOutput =
         const JsonEncoder.withIndent('  ').convert(testOutput);
 
-    file.writeAsString(encodedTestOutput);
+    await file.writeAsString(encodedTestOutput, flush: true);
   }
 }

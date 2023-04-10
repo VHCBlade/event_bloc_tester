@@ -19,8 +19,8 @@ void helloWorldTest() {
     testGroupName: "Widget Test",
     mainTestName: "Hello World",
     // Change this value to determine whether you generate the output file or check against it.
-    mode: ListTesterMode.generateOutput,
-    // mode: ListTesterMode.testOutput,
+    // mode: ListTesterMode.generateOutput,
+    mode: ListTesterMode.testOutput,
     testFunction: (value, tester, widgetTester) async {
       final key = GlobalKey();
       await widgetTester.pumpWidget(MaterialApp(

@@ -62,7 +62,7 @@ mixin SerializableListTesterMixin<T> {
     if (mode == ListTesterMode.testOutput) {
       final file = createFileObject(path, testName);
       try {
-        final value = await file.readAsString();
+        final value = file.readAsStringSync();
         tester.testOutput.addAll(json.decode(value));
       } on PathNotFoundException {
         throw ArgumentError(

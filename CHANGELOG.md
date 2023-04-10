@@ -1,3 +1,7 @@
+## 0.1.2+1
+
+* Fixed issue where testing output with SerializableListWidgetTester would run indefinitely
+
 ## 0.1.2
 
 * Refactored SerializableListTester to have some functionality be in SerializableListTesterMixin

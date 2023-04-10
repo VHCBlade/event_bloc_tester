@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../event_bloc_tester.dart';
@@ -74,6 +76,7 @@ class SerializableListWidgetTester<T> with SerializableListTesterMixin<T> {
     WidgetTester widgetTester,
     Completer<SerializableTester> completer,
   ) async {
+    TestWidgetsFlutterBinding.ensureInitialized();
     final generatedValue = testMap[testName]!();
     final tester = await generateListTester(path, testName);
     await testFunction(generatedValue, tester, widgetTester);

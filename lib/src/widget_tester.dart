@@ -54,7 +54,7 @@ class SerializableListWidgetTester<T> with SerializableListTesterMixin<T> {
       completer.future.then((value) => value.finish(path, testName));
     }
 
-    if (mode == ListTesterMode.generateOutput) {
+    if (mode == ListTesterMode.generateOutput || mode == ListTesterMode.auto) {
       // This is super janky, but we need it so that the SerializableTester will output to local.
       testWidgets("Delay to let file output happen...", (widgetTester) async {
         final currentTime = DateTime.now();

@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 enum ListTesterMode {
   generateOutput,
   testOutput,
+  // Will automatically generateOutput if necessary. Will testOutput if not available
+  auto,
 }
 
 String toFilePath(String rawName) =>
@@ -17,13 +19,16 @@ String toFilename(String rawName) => toFilePath(rawName).replaceAll("/", "_");
 File createFileObject(String path, String rawFilename) =>
     File("${toFilePath(path)}/${toFilename(rawFilename)}.json");
 
-void createFolderIfNotExists(String path) {
+/// returns true if a folder was created and false if not
+bool createFolderIfNotExists(String path) {
   if (!Directory(path).existsSync()) {
     Directory(path).createSync(recursive: true);
     print('Folder created at $path');
-  } else {
-    print('Folder already exists at $path');
+    return true;
   }
+
+  print('Folder already exists at $path');
+  return false;
 }
 
 /// This is a mixin that stores the logic for creating a tester that supports the various [ListTesterMode]s
@@ -43,8 +48,10 @@ mixin SerializableListTesterMixin<T> {
   String generatePath() {
     final String path =
         "test_output/${toFilePath(testGroupName)}/${toFilePath(mainTestName)}";
-    if (mode == ListTesterMode.generateOutput) {
-      createFolderIfNotExists(path);
+
+    final folderCreated = createFolderIfNotExists(path);
+    if (mode == ListTesterMode.generateOutput ||
+        (folderCreated && mode == ListTesterMode.auto)) {
       print("Outputting test_output to $path");
       print(
           "If you're seeing this in a flutter test, your tests might not be valid!");
@@ -56,10 +63,21 @@ mixin SerializableListTesterMixin<T> {
   /// Generates the [SerializableTester] that will be used in [runTests]
   ///
   /// This will also automatically load any needed values for the [SerializableTester] based on [mode]
-  Future<SerializableTester> generateListTester(
-      String path, String testName) async {
-    final tester = SerializableTester(mode);
-    if (mode == ListTesterMode.testOutput) {
+  Future<SerializableTester> generateListTester(String path, String testName,
+      [ListTesterMode? modeOverride]) async {
+    final usedMode = modeOverride ?? mode;
+    if (usedMode == ListTesterMode.auto) {
+      final file = createFileObject(path, testName);
+      return generateListTester(
+          path,
+          testName,
+          file.existsSync()
+              ? ListTesterMode.testOutput
+              : ListTesterMode.generateOutput);
+    }
+
+    final tester = SerializableTester(usedMode);
+    if (usedMode == ListTesterMode.testOutput) {
       final file = createFileObject(path, testName);
       try {
         final value = file.readAsStringSync();
@@ -133,17 +151,21 @@ class SerializableTester {
   final ListTesterMode mode;
   int testCase = 0;
 
-  SerializableTester(this.mode);
+  SerializableTester(this.mode) : assert(mode != ListTesterMode.auto);
 
   void addTestValue(dynamic value) {
     testCase++;
     switch (mode) {
       case ListTesterMode.generateOutput:
         testOutput.add(json.encode(value));
-        break;
+        return;
       case ListTesterMode.testOutput:
         expect(json.decode(testOutput[testCase - 1]),
             json.decode(json.encode(value)));
+        return;
+      case ListTesterMode.auto:
+        throw ArgumentError(
+            "SerializableTester cannot be initialized with auto.");
     }
   }
 

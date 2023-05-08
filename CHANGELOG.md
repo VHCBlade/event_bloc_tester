@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Added ListTesterMode.auto that will automatically generateOutput or testOutput based on the presence of the corresponding test file.
+
 ## 0.1.2+1
 
 * Fixed issue where testing output with SerializableListWidgetTester would run indefinitely

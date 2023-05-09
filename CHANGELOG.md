@@ -1,3 +1,7 @@
+## 0.1.4
+
+* Removed Flutter dependency from event_bloc_tester
+
 ## 0.1.3
 
 * Added ListTesterMode.auto that will automatically generateOutput or testOutput based on the presence of the corresponding test file.

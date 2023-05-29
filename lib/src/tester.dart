@@ -160,8 +160,8 @@ class SerializableTester {
         testOutput.add(json.encode(value));
         return;
       case ListTesterMode.testOutput:
-        expect(json.decode(testOutput[testCase - 1]),
-            json.decode(json.encode(value)));
+        expect(json.decode(json.encode(value)),
+            json.decode(testOutput[testCase - 1]));
         return;
       case ListTesterMode.auto:
         throw ArgumentError(

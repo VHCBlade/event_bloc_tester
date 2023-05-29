@@ -1,3 +1,7 @@
+## 0.1.5
+
+* Fixed Issue causing test and actual to be mixed up when running in testMode
+
 ## 0.1.4
 
 * Removed Flutter dependency from event_bloc_tester

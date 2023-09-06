@@ -1,3 +1,8 @@
+## 0.1.6
+
+* Added noOutput testMode for cases where no output is required
+* Applied Very Good Analysis and applied the suggested changes
+
 ## 0.1.5
 
 * Fixed Issue causing test and actual to be mixed up when running in testMode

@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:event_bloc_tester/src/tester.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuple/tuple.dart';
 
 void main() {
-  group('Auto File Commands', () {
+  group('NoOutput File Commands', () {
     group('toFilePath', toFilePathTest);
     group('toFileName', toFileNameTest);
     group('createFileObject', createFileObjectTest);
@@ -43,75 +41,40 @@ Map<String, Tuple2<String, String> Function()> get filePathTestCases => {
 
 void createFileObjectTest() {
   SerializableListTester<Tuple2<String, String>>(
-    testGroupName: 'Auto File Commands',
+    testGroupName: 'NoOutput File Commands',
     mainTestName: 'createFileObject',
-    // Use auto to automatically generateOutput or testOutput base on whether an
-    // existing output exists
-    mode: ListTesterMode.auto,
+    mode: ListTesterMode.noOutput,
     testFunction: (value, tester) {
-      // You can easily do permutations like this.
-      tester
-        ..addTestValue(createFileObject(value.item1, value.item2).path)
-        ..addTestValue(createFileObject(value.item2, value.item1).path)
-        ..addTestValue(createFileObject(value.item1, value.item1).path)
-        ..addTestValue(createFileObject(value.item2, value.item2).path);
+      expect(value.item1, value.item1);
+      expect(value.item2.length > 4, true);
     },
     testMap: filePathTestCases,
   ).runTests();
-
-  test('Cleanup', () {
-    File('test_output/Auto/File/Commands/createFileObject/I_am_Extra.json')
-        .deleteSync();
-
-    expect(1, 1);
-  });
 }
 
 void toFilePathTest() {
   SerializableListTester<String>(
-    testGroupName: 'Auto File Commands',
+    testGroupName: 'NoOutput File Commands',
     mainTestName: 'toFilePath',
-    // Use auto to automatically generateOutput or testOutput base on whether an
-    // existing output exists
-    mode: ListTesterMode.auto,
+    mode: ListTesterMode.noOutput,
     testFunction: (value, tester) {
-      tester
-        ..addTestValue(toFilePath(value))
-        // You can do whatever between these two values. This is just a silly
-        // example.
-        ..addTestValue('${toFilePath(value)}.json');
+      expect(value, value);
+      expect(value.length > 3, true);
     },
     testMap: commonTestCases,
   ).runTests();
-
-  test('Cleanup', () {
-    File('test_output/Auto/File/Commands/toFilePath/I_am_Extra.json')
-        .deleteSync();
-
-    expect(1, 1);
-  });
 }
 
 void toFileNameTest() {
   SerializableListTester<String>(
-    testGroupName: 'Auto File Commands',
+    testGroupName: 'NoOutput File Commands',
     mainTestName: 'toFileName',
-    // Use auto to automatically generateOutput or testOutput base on whether an
-    // existing output exists
-    mode: ListTesterMode.auto,
+    mode: ListTesterMode.noOutput,
     testFunction: (value, tester) {
-      tester
-        ..addTestValue(toFilename(value))
-        // You can do whatever between these two values. This is just a silly
-        // example.
-        ..addTestValue('${toFilename(value)}.json');
+      tester.addTestValue(toFilename(value));
+      expect(value, value);
+      expect(value.length > 3, true);
     },
     testMap: commonTestCases,
   ).runTests();
-  test('Cleanup', () {
-    File('test_output/Auto/File/Commands/toFileName/I_am_Extra.json')
-        .deleteSync();
-
-    expect(1, 1);
-  });
 }
